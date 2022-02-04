@@ -90,7 +90,7 @@ from searx.utils import (
     dict_subset,
     match_language,
 )
-from searx.version import VERSION_STRING, GIT_URL, GIT_BRANCH
+from searx.version import VERSION_STRING, VERSION_STRING_UPSTREAM, FORK_COMMIT, GIT_URL, GIT_BRANCH
 from searx.query import RawTextQuery
 from searx.plugins import Plugin, plugins, initialize as plugin_initialize
 from searx.plugins.oa_doi_rewrite import get_doi_resolver
@@ -449,6 +449,7 @@ def render(template_name: str, **kwargs):
     kwargs['search_formats'] = [x for x in settings['search']['formats'] if x != 'html']
     kwargs['instance_name'] = get_setting('general.instance_name')
     kwargs['searx_version'] = VERSION_STRING
+    kwargs['searx_version_custom'] = str(VERSION_STRING_UPSTREAM) + " (" + str(FORK_COMMIT) + ")"
     kwargs['searx_git_url'] = GIT_URL
     kwargs['get_setting'] = get_setting
     kwargs['get_pretty_url'] = get_pretty_url
@@ -1359,7 +1360,7 @@ def config():
             'autocomplete': settings['search']['autocomplete'],
             'safe_search': settings['search']['safe_search'],
             'default_theme': settings['ui']['default_theme'],
-            'version': VERSION_STRING,
+            'version': str(VERSION_STRING_UPSTREAM) + " (" + str(FORK_COMMIT) + ")",
             'brand': {
                 'PRIVACYPOLICY_URL': get_setting('general.privacypolicy_url'),
                 'CONTACT_URL': get_setting('general.contact_url'),

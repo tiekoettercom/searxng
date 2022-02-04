@@ -72,6 +72,30 @@ def get_git_version():
     return git_version, tag_version
 
 
+def get_git_version_upstream():
+    try:
+        git_commit_date_hash = subprocess_run(r"git show -s --format='%cs-%h' origin/pull").replace("-", ".", 2)
+        git_version = git_commit_date_hash
+    except subprocess.CalledProcessError:
+        git_commit_date_hash = subprocess_run(r"git show -s --format='%cs-%h'").replace("-", ".", 2)
+        git_version = git_commit_date_hash
+
+    # add "-dirty" suffix if there are uncommited changes except searx/settings.yml
+    try:
+        subprocess_run("git diff --quiet -- . ':!searx/settings.yml' ':!utils/brand.env'")
+    except subprocess.CalledProcessError as e:
+        if e.returncode == 1:
+            git_version += "-dirty"
+        else:
+            logger.warning('"%s" returns an unexpected return code %i', e.returncode, e.cmd)
+    return git_version
+
+
+def get_git_fork_commit():
+    git_commit_date_hash = subprocess_run(r"git show -s --format='%h'")
+    return git_commit_date_hash
+
+
 try:
     from searx.version_frozen import VERSION_STRING, VERSION_TAG, GIT_URL, GIT_BRANCH
 except ImportError:
@@ -88,6 +112,9 @@ except ImportError:
         logger.error("%s is not found, fallback to the default version", ex.filename)
 
 
+VERSION_STRING_UPSTREAM = get_git_version_upstream()
+FORK_COMMIT = get_git_fork_commit()
+
 logger.info("version: %s", VERSION_STRING)
 
 if __name__ == "__main__":
@@ -100,6 +127,8 @@ if __name__ == "__main__":
 
 VERSION_STRING = "{VERSION_STRING}"
 VERSION_TAG = "{VERSION_TAG}"
+VERSION_STRING_UPSTREAM = "{VERSION_STRING_UPSTREAM}"
+FORK_COMMIT = "{FORK_COMMIT}"
 GIT_URL = "{GIT_URL}"
 GIT_BRANCH = "{GIT_BRANCH}"
 """
@@ -112,6 +141,8 @@ GIT_BRANCH = "{GIT_BRANCH}"
         shell_code = f"""
 VERSION_STRING="{VERSION_STRING}"
 VERSION_TAG="{VERSION_TAG}"
+VERSION_STRING_UPSTREAM = "{VERSION_STRING_UPSTREAM}"
+FORK_COMMIT = "{FORK_COMMIT}"
 GIT_URL="{GIT_URL}"
 GIT_BRANCH="{GIT_BRANCH}"
 """
